@@ -62,13 +62,22 @@ def initial_deal():
     dealer_cards.append(get_random_card())
 
 
-def print_game_status():
+def print_game_status(dealers_turn):
     # Dealer status
-    dealer_cards_string = 'Dealer cards: %s, X' % dealer_cards[0]
-    dealer_total = get_card_value(dealer_cards[0])
+    if dealers_turn:
+        dealer_cards_string = 'Dealer cards: ' + get_card_string(dealer_cards)
+        dealer_total = get_total_value(dealer_cards)
+    else:
+        dealer_cards_string = 'Dealer cards: %s, X' % dealer_cards[0]
+        dealer_total = get_card_value(dealer_cards[0])
+
+    if dealer_total <= 21:
+        dealer_total_string = 'Total: ' + str(dealer_total)
+    else:
+        dealer_total_string = 'Total: ' + str(dealer_total) + ' (BUST)'
 
     print(dealer_cards_string)
-    print('Total: %d' % dealer_total)
+    print(dealer_total_string)
 
     # User status
     user_cards_string = 'Your cards: ' + get_card_string(user_cards)
@@ -113,6 +122,33 @@ def is_user_bust():
     return get_total_value(user_cards) > 21
 
 
+def is_dealer_bust():
+    return get_total_value(dealer_cards) > 21
+
+
+def dealer_must_stand():
+    return get_total_value(dealer_cards) >= 17
+
+
+def user_has_won():
+    return get_total_value(user_cards) > get_total_value(dealer_cards)
+
+
+def game_is_tied():
+    return get_total_value(user_cards) == get_total_value(dealer_cards)
+
+
+def keep_playing_prompt():
+    print('Game end. Remaining money: $%s' % total_money)
+    user_input = input('Keep playing? (y/n) ')
+
+    if user_input == 'y':
+        return True
+    else:
+        print('Thanks for playing!')
+        return False
+
+
 total_money = setup_game()
 
 while True:
@@ -132,13 +168,14 @@ while True:
     print('Dealing cards...')
     initial_deal()
 
-    user_still_playing = True;
     # User's turn
+    user_still_playing = True;
+
     while user_still_playing:
-        print_game_status()
+        print_game_status(False)
 
         if is_user_bust():
-            print("You lose $%d." % wager)
+            print('You lose $%d.' % wager)
             break
 
         while True:
@@ -150,12 +187,40 @@ while True:
                 user_still_playing = False
                 break
             else:
-                print("Please enter valid input.")
+                print('Please enter valid input.')
 
     if is_user_bust():
-        continue
+        if keep_playing_prompt():
+            continue
+        else:
+            break
 
     # Dealer's turn
     while True:
-        print_game_status()
+        print_game_status(True)
+
+        if is_dealer_bust():
+            print('Dealer is bust.')
+            winnings = wager * 2
+            print('You win $%d.' % wager)
+            total_money += winnings
+            break
+
+        if dealer_must_stand():
+            print('Dealer stands.')
+            if user_has_won():
+                winnings = wager * 2
+                print('You win $%d.' % wager)
+                total_money += winnings
+            elif game_is_tied():
+                print('Game tied.')
+                total_money += wager
+            else:
+                print('You lose $%d.' % wager)
+            break
+
+        print('Dealer hits.')
+        dealer_cards.append(get_random_card())
+
+    if not keep_playing_prompt():
         break
