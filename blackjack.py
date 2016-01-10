@@ -69,12 +69,19 @@ def print_game_status(dealers_turn):
         dealer_total = get_total_value(dealer_cards)
     else:
         dealer_cards_string = 'Dealer cards: %s, X' % dealer_cards[0]
-        dealer_total = get_card_value(dealer_cards[0])
+        dealer_total = get_total_value([dealer_cards[0]])
 
-    if dealer_total <= 21:
-        dealer_total_string = 'Total: ' + str(dealer_total)
+    # hard and soft totals equal
+    if dealer_total[0] == dealer_total[1] or dealer_total[1] > 21:
+        dealer_total = dealer_total[0]
+
+        if dealer_total <= 21:
+            dealer_total_string = 'Total: %d' % dealer_total
+        else:
+            dealer_total_string = 'Total: %d (BUST)' % dealer_total
+
     else:
-        dealer_total_string = 'Total: ' + str(dealer_total) + ' (BUST)'
+        dealer_total_string = 'Total: %d (hard), %d (soft)' % dealer_total
 
     print(dealer_cards_string)
     print(dealer_total_string)
@@ -82,10 +89,18 @@ def print_game_status(dealers_turn):
     # User status
     user_cards_string = 'Your cards: ' + get_card_string(user_cards)
     user_total = get_total_value(user_cards)
-    if user_total <= 21:
-        user_total_string = 'Total: ' + str(user_total)
+
+    # hard and soft totals equal
+    if user_total[0] == user_total[1] or user_total[1] > 21:
+        user_total = user_total[0]
+
+        if user_total <= 21:
+            user_total_string = 'Total: %d' % user_total
+        else:
+            user_total_string = 'Total: %d (BUST)' % user_total
+
     else:
-        user_total_string = 'Total: ' + str(user_total) + ' (BUST)'
+        user_total_string = 'Total: %d (hard), %d (soft)' % user_total
 
     print(user_cards_string)
     print(user_total_string)
@@ -101,46 +116,73 @@ def get_card_string(cards):
 
 
 def get_total_value(cards):
-    total = 0
+    hard_total = 0
 
     for card in cards:
-        total += get_card_value(card)
+        hard_total += get_card_value(card)
 
-    return total
+    soft_total = hard_total
+    if 'A' in cards:
+        soft_total += 10
+
+    return hard_total, soft_total
 
 
 def get_card_value(card):
     try:
         value = int(card)
     except:
-        value = 10
+        if card == 'A':
+            value = 1
+        else:
+            value = 10
 
     return value
 
 
 def is_user_bust():
-    return get_total_value(user_cards) > 21
+    total = highest_valid_total(*get_total_value(user_cards))
+    return total > 21
 
 
 def is_dealer_bust():
-    return get_total_value(dealer_cards) > 21
+    total = highest_valid_total(*get_total_value(dealer_cards))
+    return total > 21
 
 
 def dealer_must_stand():
-    return get_total_value(dealer_cards) >= 17
+    total = highest_valid_total(*get_total_value(dealer_cards))
+    return total >= 17
 
 
 def user_has_won():
-    return get_total_value(user_cards) > get_total_value(dealer_cards)
+    user_total = highest_valid_total(*get_total_value(user_cards))
+    dealer_total = highest_valid_total(*get_total_value(dealer_cards))
+
+    return user_total > dealer_total
 
 
 def game_is_tied():
-    return get_total_value(user_cards) == get_total_value(dealer_cards)
+    user_total = highest_valid_total(*get_total_value(user_cards))
+    dealer_total = highest_valid_total(*get_total_value(dealer_cards))
+
+    return user_total == dealer_total
+
+
+def highest_valid_total(hard, soft):
+    if hard > 21:
+        return soft
+    else:
+        return hard
 
 
 def keep_playing_prompt():
     print('Game end. Remaining money: $%s' % total_money)
-    user_input = input('Keep playing? (y/n) ')
+    if total_money > 0:
+        user_input = input('Keep playing? (y/n) ')
+    else:
+        print('Out of money. Game over!')
+        return False
 
     if user_input == 'y':
         return True
@@ -159,7 +201,7 @@ while True:
         wager = input('How much would you like to wager? ')
 
         valid_wager, wager = is_valid_dollar_amount(wager)
-        if valid_wager and wager <= total_money:
+        if valid_wager and 0 <= wager <= total_money:
             total_money -= wager
             break
         else:
