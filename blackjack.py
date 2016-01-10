@@ -8,16 +8,16 @@ dealer_cards = []
 
 
 def setup_game():
-    print("Welcome to Blackjack!")
+    print('Welcome to Blackjack!')
     money = 0
 
     while True:
-        money = input("How much money would you like to bring to the table? ")
+        money = input('How much money would you like to bring to the table? ')
         valid_dollar_amount, money = is_valid_dollar_amount(money)
         if valid_dollar_amount:
             break
         else:
-            print("Please enter valid amount.")
+            print('Please enter valid amount.')
 
     return money
 
@@ -49,34 +49,46 @@ def is_valid_dollar_amount(user_input):
         return False, user_input
 
 
+def get_random_card():
+    random_int = random.randint(0, len(deck_of_cards) - 1)
+    return deck_of_cards.pop(random_int)
+
+
 def initial_deal():
-    for i in range(2):
-        random_int = random.randint(0, len(deck_of_cards) - 1)
-        random_card = deck_of_cards.pop(random_int)
+    user_cards.append(get_random_card())
+    user_cards.append(get_random_card())
 
-        user_cards.append(random_card)
-
-    for i in range(2):
-        random_int = random.randint(0, len(deck_of_cards) - 1)
-        random_card = deck_of_cards.pop(random_int)
-
-        dealer_cards.append(random_card)
+    dealer_cards.append(get_random_card())
+    dealer_cards.append(get_random_card())
 
 
 def print_game_status():
     # Dealer status
-    dealer_cards_string = "Dealer cards: %s, X" % dealer_cards[0]
+    dealer_cards_string = 'Dealer cards: %s, X' % dealer_cards[0]
     dealer_total = get_card_value(dealer_cards[0])
 
     print(dealer_cards_string)
-    print("Total: %d" % dealer_total)
+    print('Total: %d' % dealer_total)
 
     # User status
-    user_cards_string = "User cards: %s, %s" % tuple(user_cards)
+    user_cards_string = 'Your cards: ' + get_card_string(user_cards)
     user_total = get_total_value(user_cards)
+    if user_total <= 21:
+        user_total_string = 'Total: ' + str(user_total)
+    else:
+        user_total_string = 'Total: ' + str(user_total) + ' (BUST)'
 
     print(user_cards_string)
-    print("Total: %d" % user_total)
+    print(user_total_string)
+
+
+def get_card_string(cards):
+    card_string = ''
+
+    for card in cards:
+        card_string += card + ', '
+
+    return card_string[:-2]
 
 
 def get_total_value(cards):
@@ -97,24 +109,53 @@ def get_card_value(card):
     return value
 
 
+def is_user_bust():
+    return get_total_value(user_cards) > 21
+
+
 total_money = setup_game()
 
 while True:
     reset_game()
+    wager = 0
 
     while True:
-        wager = input("How much would you like to wager? ")
+        wager = input('How much would you like to wager? ')
 
         valid_wager, wager = is_valid_dollar_amount(wager)
         if valid_wager and wager <= total_money:
+            total_money -= wager
             break
         else:
-            print("Please enter valid amount.")
+            print('Please enter valid amount.')
 
-    print("Dealing cards...")
+    print('Dealing cards...')
     initial_deal()
+
+    user_still_playing = True;
+    # User's turn
+    while user_still_playing:
+        print_game_status()
+
+        if is_user_bust():
+            print("You lose $%d." % wager)
+            break
+
+        while True:
+            user_choice = input('Hit (h) or stand (s)? ')
+            if user_choice == 'h':
+                user_cards.append(get_random_card())
+                break
+            elif user_choice == 's':
+                user_still_playing = False
+                break
+            else:
+                print("Please enter valid input.")
+
+    if is_user_bust():
+        continue
+
+    # Dealer's turn
     while True:
         print_game_status()
         break
-
-    break
