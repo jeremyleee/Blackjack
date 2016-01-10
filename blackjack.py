@@ -1,4 +1,10 @@
+import random
+
 NUMBER_OF_DECKS = 1
+
+deck_of_cards = []
+user_cards = []
+dealer_cards = []
 
 
 def setup_game():
@@ -17,8 +23,11 @@ def setup_game():
 
 
 def reset_game():
+    deck_of_cards.clear()
+    user_cards.clear()
+    dealer_cards.clear()
+
     single_suit = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
-    deck_of_cards = []
 
     for i in range(NUMBER_OF_DECKS):
         deck_of_cards.extend(single_suit)
@@ -40,6 +49,24 @@ def is_valid_dollar_amount(user_input):
         return False, user_input
 
 
+def initial_deal():
+    for i in range(2):
+        random_int = random.randint(0, len(deck_of_cards) - 1)
+        random_card = deck_of_cards.pop(random_int)
+
+        user_cards.append(random_card)
+
+    for i in range(2):
+        random_int = random.randint(0, len(deck_of_cards) - 1)
+        random_card = deck_of_cards.pop(random_int)
+
+        dealer_cards.append(random_card)
+
+
+def print_game_status():
+    print("User cards: " + str(user_cards))
+    print("Dealer cards: " + str(dealer_cards))
+
 total_money = setup_game()
 
 while True:
@@ -54,4 +81,10 @@ while True:
         else:
             print("Please enter valid amount.")
 
-    # begin game
+    print("Dealing cards...")
+    initial_deal()
+    while True:
+        print_game_status()
+        break
+
+    break
