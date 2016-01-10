@@ -64,8 +64,38 @@ def initial_deal():
 
 
 def print_game_status():
-    print("User cards: " + str(user_cards))
-    print("Dealer cards: " + str(dealer_cards))
+    # Dealer status
+    dealer_cards_string = "Dealer cards: %s, X" % dealer_cards[0]
+    dealer_total = get_card_value(dealer_cards[0])
+
+    print(dealer_cards_string)
+    print("Total: %d" % dealer_total)
+
+    # User status
+    user_cards_string = "User cards: %s, %s" % tuple(user_cards)
+    user_total = get_total_value(user_cards)
+
+    print(user_cards_string)
+    print("Total: %d" % user_total)
+
+
+def get_total_value(cards):
+    total = 0
+
+    for card in cards:
+        total += get_card_value(card)
+
+    return total
+
+
+def get_card_value(card):
+    try:
+        value = int(card)
+    except:
+        value = 10
+
+    return value
+
 
 total_money = setup_game()
 
