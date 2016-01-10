@@ -218,24 +218,46 @@ while True:
     initial_deal()
 
     # User's turn
-    user_still_playing = True;
+    user_first_turn = True
+    user_stand = False
+    user_double = False
+    while True:
+        if user_stand:
+            break
 
-    while user_still_playing:
         print_game_status(False)
 
         if is_user_bust():
             print('You lose $%d. Remaining money: $%d' % (wager, total_money))
             break
 
+        if user_double:
+            break
+
         while True:
-            user_choice = input('Hit (h) or stand (s)? ')
+            if user_first_turn and wager < total_money:
+                user_choice = input('Hit (h), stand (s) or double down (d)? ')
+            else:
+                user_choice = input('Hit (h) or stand (s)? ')
+
             if user_choice.lower() == 'h':
+                user_first_turn = False
                 user_cards.append(get_random_card())
                 print('----------------------------------')
                 break
             elif user_choice.lower() == 's':
-                user_still_playing = False
+                user_stand = True
                 print('----------------------------------')
+                break
+            elif user_choice.lower() == 'd' and user_first_turn and wager < total_money:
+                user_double = True
+
+                total_money -= wager
+                wager *= 2
+                print("New wager amount: $%d" % wager)
+                print('----------------------------------')
+
+                user_cards.append(get_random_card())
                 break
             else:
                 print('Please enter valid input.')
