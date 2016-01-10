@@ -8,7 +8,9 @@ dealer_cards = []
 
 
 def setup_game():
+    print('==================================')
     print('Welcome to Blackjack!')
+    print('==================================')
     money = 0
 
     while True:
@@ -37,6 +39,9 @@ def reset_game():
 
 
 def is_valid_dollar_amount(user_input):
+    if not user_input:
+        return False, user_input
+
     # remove any dollar signs
     if user_input[0] == '$':
         user_input = user_input[1:]
@@ -62,6 +67,22 @@ def initial_deal():
     dealer_cards.append(get_random_card())
 
 
+def get_total_string(total_tuple):
+    # hard and soft totals equal
+    if total_tuple[0] == total_tuple[1] or total_tuple[1] > 21:
+        total = total_tuple[0]
+
+        if total <= 21:
+            total_string = 'Total: %d' % total
+        else:
+            total_string = 'Total: %d (BUST)' % total
+
+    else:
+        total_string = 'Total: %d (hard), %d (soft)' % total_tuple
+
+    return total_string
+
+
 def print_game_status(dealers_turn):
     # Dealer status
     if dealers_turn:
@@ -71,17 +92,7 @@ def print_game_status(dealers_turn):
         dealer_cards_string = 'Dealer cards: %s, X' % dealer_cards[0]
         dealer_total = get_total_value([dealer_cards[0]])
 
-    # hard and soft totals equal
-    if dealer_total[0] == dealer_total[1] or dealer_total[1] > 21:
-        dealer_total = dealer_total[0]
-
-        if dealer_total <= 21:
-            dealer_total_string = 'Total: %d' % dealer_total
-        else:
-            dealer_total_string = 'Total: %d (BUST)' % dealer_total
-
-    else:
-        dealer_total_string = 'Total: %d (hard), %d (soft)' % dealer_total
+    dealer_total_string = get_total_string(dealer_total)
 
     print(dealer_cards_string)
     print(dealer_total_string)
@@ -90,20 +101,11 @@ def print_game_status(dealers_turn):
     user_cards_string = 'Your cards: ' + get_card_string(user_cards)
     user_total = get_total_value(user_cards)
 
-    # hard and soft totals equal
-    if user_total[0] == user_total[1] or user_total[1] > 21:
-        user_total = user_total[0]
-
-        if user_total <= 21:
-            user_total_string = 'Total: %d' % user_total
-        else:
-            user_total_string = 'Total: %d (BUST)' % user_total
-
-    else:
-        user_total_string = 'Total: %d (hard), %d (soft)' % user_total
+    user_total_string = get_total_string(user_total)
 
     print(user_cards_string)
     print(user_total_string)
+    print('----------------------------------')
 
 
 def get_card_string(cards):
@@ -170,25 +172,27 @@ def game_is_tied():
 
 
 def highest_valid_total(hard, soft):
-    if hard > 21:
-        return soft
-    else:
+    if soft > 21:
         return hard
+    else:
+        return soft
 
 
 def keep_playing_prompt():
-    print('Game end. Remaining money: $%s' % total_money)
-    if total_money > 0:
-        user_input = input('Keep playing? (y/n) ')
-    else:
-        print('Out of money. Game over!')
-        return False
+    while True:
+        if total_money > 0:
+            user_input = input('Keep playing? (y/n) ')
+        else:
+            print('Out of money. Game over!')
+            return False
 
-    if user_input == 'y':
-        return True
-    else:
-        print('Thanks for playing!')
-        return False
+        if user_input.lower() == 'y':
+            return True
+        elif user_input.lower() == 'n':
+            print('Thanks for playing!')
+            return False
+        else:
+            print('Invalid input. Please try again.')
 
 
 total_money = setup_game()
@@ -196,6 +200,7 @@ total_money = setup_game()
 while True:
     reset_game()
     wager = 0
+    print('----------------------------------')
 
     while True:
         wager = input('How much would you like to wager? ')
@@ -207,7 +212,9 @@ while True:
         else:
             print('Please enter valid amount.')
 
+    print('----------------------------------')
     print('Dealing cards...')
+    print('----------------------------------')
     initial_deal()
 
     # User's turn
@@ -217,16 +224,18 @@ while True:
         print_game_status(False)
 
         if is_user_bust():
-            print('You lose $%d.' % wager)
+            print('You lose $%d. Remaining money: $%d' % (wager, total_money))
             break
 
         while True:
             user_choice = input('Hit (h) or stand (s)? ')
-            if user_choice == 'h':
+            if user_choice.lower() == 'h':
                 user_cards.append(get_random_card())
+                print('----------------------------------')
                 break
-            elif user_choice == 's':
+            elif user_choice.lower() == 's':
                 user_still_playing = False
+                print('----------------------------------')
                 break
             else:
                 print('Please enter valid input.')
@@ -244,24 +253,27 @@ while True:
         if is_dealer_bust():
             print('Dealer is bust.')
             winnings = wager * 2
-            print('You win $%d.' % wager)
             total_money += winnings
+            print('You win $%d. Remaining money: $%d' % (wager, total_money))
             break
 
         if dealer_must_stand():
             print('Dealer stands.')
+            print('----------------------------------')
             if user_has_won():
                 winnings = wager * 2
-                print('You win $%d.' % wager)
                 total_money += winnings
+                print('You win $%d. Remaining money: $%d' % (wager, total_money))
             elif game_is_tied():
-                print('Game tied.')
                 total_money += wager
+                print('Game tied. Remaining money: $%d' % total_money)
             else:
-                print('You lose $%d.' % wager)
+                print('You lose $%d. Remaining money: $%d' % (wager, total_money))
+
             break
 
         print('Dealer hits.')
+        print('----------------------------------')
         dealer_cards.append(get_random_card())
 
     if not keep_playing_prompt():
