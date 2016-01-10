@@ -100,6 +100,8 @@ def print_game_status(dealers_turn):
     print(dealer_cards_string)
     print(dealer_total_string)
 
+    print("")
+
     # User status
     user_cards_string = 'Your cards: ' + get_card_string(user_cards)
     user_total = get_total_value(user_cards)
@@ -331,3 +333,5 @@ while True:
 
     if not keep_playing_prompt():
         break
+
+input()
