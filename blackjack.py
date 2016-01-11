@@ -2,17 +2,13 @@ import random
 
 NUMBER_OF_DECKS = 1
 
-deck_of_cards = []
-user_cards = []
-dealer_cards = []
-
 
 def setup_game():
-    print('==================================')
+    print_title_divider()
     print('Welcome to Blackjack!')
-    print('==================================')
-    money = 0
+    print_title_divider()
 
+    money = 0
     while True:
         money = input('How much money would you like to bring to the table? ')
         valid_dollar_amount, money = is_valid_dollar_amount(money)
@@ -67,25 +63,6 @@ def initial_deal():
     dealer_cards.append(get_random_card())
 
 
-def get_total_string(can_show_blackjack, cards, total_tuple):
-    if can_show_blackjack and blackjack(cards):
-        total_string = 'Total: Blackjack!'
-
-    # hard and soft totals equal
-    elif total_tuple[0] == total_tuple[1] or total_tuple[1] > 21:
-        total = total_tuple[0]
-
-        if total <= 21:
-            total_string = 'Total: %d' % total
-        else:
-            total_string = 'Total: %d (BUST)' % total
-
-    else:
-        total_string = 'Total: %d (hard), %d (soft)' % total_tuple
-
-    return total_string
-
-
 def print_game_status(dealers_turn):
     # Dealer status
     if dealers_turn:
@@ -110,9 +87,30 @@ def print_game_status(dealers_turn):
 
     print(user_cards_string)
     print(user_total_string)
-    print('----------------------------------')
+    print_divider()
 
 
+# returns printable representation of hand value
+def get_total_string(can_show_blackjack, cards, total_tuple):
+    if can_show_blackjack and blackjack(cards):
+        total_string = 'Total: Blackjack!'
+
+    # hard and soft totals equal
+    elif total_tuple[0] == total_tuple[1] or total_tuple[1] > 21:
+        total = total_tuple[0]
+
+        if total <= 21:
+            total_string = 'Total: %d' % total
+        else:
+            total_string = 'Total: %d (BUST)' % total
+
+    else:
+        total_string = 'Total: %d (hard), %d (soft)' % total_tuple
+
+    return total_string
+
+
+# returns printable representation of cards held
 def get_card_string(cards):
     card_string = ''
 
@@ -122,6 +120,7 @@ def get_card_string(cards):
     return card_string[:-2]
 
 
+# returns value of a list of cards
 def get_total_value(cards):
     hard_total = 0
 
@@ -135,6 +134,7 @@ def get_total_value(cards):
     return hard_total, soft_total
 
 
+# returns value of a single card
 def get_card_value(card):
     try:
         value = int(card)
@@ -213,12 +213,25 @@ def keep_playing_prompt():
             print('Invalid input. Please try again.')
 
 
+def print_title_divider():
+    print('=========================================')
+
+
+def print_divider():
+    print('-----------------------------------------')
+
+
+# Game setup
+deck_of_cards = []
+user_cards = []
+dealer_cards = []
 total_money = setup_game()
 
+# Loop for an individual game
 while True:
     reset_game()
     wager = 0
-    print('----------------------------------')
+    print_divider()
 
     while True:
         wager = input('How much would you like to wager? ')
@@ -230,15 +243,15 @@ while True:
         else:
             print('Please enter valid amount.')
 
-    print('----------------------------------')
     print('Dealing cards...')
-    print('----------------------------------')
+    print_divider()
     initial_deal()
 
     # User's turn
     user_first_turn = True
     user_stand = False
     user_double = False
+
     while True:
         if user_stand or user_blackjack():
             break
@@ -261,11 +274,11 @@ while True:
             if user_choice.lower() == 'h':
                 user_first_turn = False
                 user_cards.append(get_random_card())
-                print('----------------------------------')
+                print_divider()
                 break
             elif user_choice.lower() == 's':
                 user_stand = True
-                print('----------------------------------')
+                print_divider()
                 break
             elif user_choice.lower() == 'd' and user_first_turn and wager < total_money:
                 user_double = True
@@ -273,7 +286,7 @@ while True:
                 total_money -= wager
                 wager *= 2
                 print("New wager amount: $%d" % wager)
-                print('----------------------------------')
+                print_divider()
 
                 user_cards.append(get_random_card())
                 break
@@ -314,7 +327,7 @@ while True:
 
         if dealer_must_stand():
             print('Dealer stands.')
-            print('----------------------------------')
+            print_divider()
             if user_has_won():
                 winnings = wager * 2
                 total_money += winnings
@@ -328,7 +341,7 @@ while True:
             break
 
         print('Dealer hits.')
-        print('----------------------------------')
+        print_divider()
         dealer_cards.append(get_random_card())
 
     if not keep_playing_prompt():
